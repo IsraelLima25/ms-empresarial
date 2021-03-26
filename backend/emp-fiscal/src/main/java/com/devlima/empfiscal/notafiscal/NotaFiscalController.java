@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.devlima.empfiscal.feign.FileFeignClient;
-import com.devlima.empfiscal.notafiscal.unmarshall.NfeProc;
+import com.devlima.empfiscal.notafiscal.dto.NfeProcDTO;
+import com.devlima.empfiscal.notafiscal.feign.FileFeignClient;
 
 @RestController
 @RequestMapping(value = "/notasFiscais")
@@ -23,15 +23,10 @@ public class NotaFiscalController {
     private FileFeignClient fileClient;
     
     @PostMapping("/entrada")
-    public ResponseEntity<NfeProc> enviarNotaFiscalEntrada(
-    		@RequestPart("file") MultipartFile file){
+    public ResponseEntity<NfeProcDTO> enviarNotaFiscalEntrada(@RequestPart("file") MultipartFile file){
     	
     	logger.info("Start input nf system");
-    	
-    	ResponseEntity<NfeProc> response = fileClient.entradaFileNotaFiscalXML(file);
-    	
-    	logger.info("A nota fiscal de entrada é a " + response.getBody()
-    	.getNfe().getInformacaoNfe().getTransp().getTransportadora().getNome());
+    	ResponseEntity<NfeProcDTO> response = fileClient.entradaFileNotaFiscalXML(file);
     	
     	return response;
     }

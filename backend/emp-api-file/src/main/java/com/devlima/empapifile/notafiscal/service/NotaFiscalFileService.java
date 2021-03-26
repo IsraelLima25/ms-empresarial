@@ -2,40 +2,42 @@ package com.devlima.empapifile.notafiscal.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.devlima.empapifile.notafiscal.unmarshall.NfeProc;
+import com.devlima.empapifile.file.enun.FolderType;
+import com.devlima.empapifile.file.service.FileStorageService;
+import com.devlima.empapifile.notafiscal.dto.NfeProcDTO;
 
 @Service
 public class NotaFiscalFileService {
 
-	public NfeProc extractNotaFiscalXMLToDTO(MultipartFile xmlNfFile) throws JAXBException, IllegalStateException, IOException {
-		
-		NfeProc notaFiscalOBJDTO = unmarshallXMLNotaFiscalFile(xmlNfFile);
-		return notaFiscalOBJDTO;
+	@Autowired
+	private FileStorageService fileStorageService;
+
+	public NfeProcDTO unmarshallXMLNotaFiscalFile(Resource resource)
+			throws JAXBException, IllegalStateException, IOException {
+
+		JAXBContext context = JAXBContext.newInstance(NfeProcDTO.class);
+		File file = resource.getFile();
+		return (NfeProcDTO) context.createUnmarshaller().unmarshal(file);
 	}
-	
-	private NfeProc unmarshallXMLNotaFiscalFile(MultipartFile xmlNfFile) throws JAXBException, IllegalStateException, IOException {
+
+	public String saveFileNFeDirectory(MultipartFile multipartFile, FolderType folder) {
+
+		String fileName = fileStorageService.storeFile(multipartFile, folder);
+		return fileName;
+	}
+
+	public Resource loadFileNFeDirectory(String fileName, FolderType folder) {
 		
-		String storageLocationTmp = "/home/israel/upload-emp/xmlFile.xml";
-		
-		Path targetLocation = Path.of(storageLocationTmp);
-        Files.copy(xmlNfFile.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-        
-        File file = new File(storageLocationTmp);
-        
-        JAXBContext context = JAXBContext.newInstance(NfeProc.class);
-		
-		xmlNfFile.transferTo(file);
-		
-		return (NfeProc) context.createUnmarshaller().unmarshal(file);
+		Resource resourceFileLoad = fileStorageService.loadFileAsResource(fileName, folder);
+		return resourceFileLoad;
 	}
 }
